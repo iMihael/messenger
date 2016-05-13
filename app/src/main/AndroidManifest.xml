@@ -8,6 +8,9 @@
     <!-- <uses-permission android:name="android.permission.READ_CONTACTS" /> -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
         android:allowBackup="true"
@@ -21,20 +24,26 @@
         <activity
             android:name=".activities.Chats"
             android:label="@string/title_activity_chats"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activities.Login"
-            android:label="Login">
+            android:label="Login"></activity>
+        <activity
+            android:name=".activities.Register"
+            android:label="First Login" />
+        <activity
+            android:name=".activities.Contacts"
+            android:label="Contacts" />
+        <activity
+            android:name=".activities.Splash"
+            android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".activities.Register"
-            android:label="First Login" />
-        <activity android:name=".activities.Contacts" android:label="Contacts"></activity>
+        <activity android:name=".activities.AddContact" android:label="Add Contact"></activity>
     </application>
 
 </manifest>

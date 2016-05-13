@@ -1,5 +1,6 @@
 package me.mihael.messenger.activities;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -42,6 +43,7 @@ public class Contacts extends AppCompatActivity {
     }
 
     public void createContact(View v) {
-        Log.i("BTN", "CLICK");
+        Intent i = new Intent(this, AddContact.class);
+        startActivity(i);
     }
 }

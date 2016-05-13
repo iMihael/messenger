@@ -38,6 +38,11 @@ public class Login extends AppCompatActivity {
         pwd = (EditText)findViewById(R.id.editText);
     }
 
+    @Override
+    public void onBackPressed() {
+
+    }
+
     public void doLogin(View v) {
         AlertDialog.Builder b = new AlertDialog.Builder(this);
         b.setTitle("Failure!");

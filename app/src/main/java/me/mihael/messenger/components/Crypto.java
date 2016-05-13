@@ -1,5 +1,5 @@
 package me.mihael.messenger.components;
-
+import android.util.Base64;
 import android.util.Log;
 
 import java.nio.charset.Charset;
@@ -43,11 +43,17 @@ public class Crypto {
         try {
             SecureRandom random = new SecureRandom();
             RSAKeyGenParameterSpec spec = new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4);
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", "SC");
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
             generator.initialize(spec, random);
             return generator.generateKeyPair();
         } catch (Exception e) {
+            Log.d("CRYPTO", e.getMessage());
             return null;
         }
+    }
+
+    public String exportPublicKey(KeyPair pair) {
+        byte [] buf = pair.getPublic().getEncoded();
+        return new String(Base64.encode(buf, Base64.DEFAULT));
     }
 }
