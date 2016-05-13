@@ -1,7 +1,9 @@
-package me.mihael.messenger;
+package me.mihael.messenger.activities;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+
+import me.mihael.messenger.R;
 
 public class Settings extends AppCompatActivity {
 

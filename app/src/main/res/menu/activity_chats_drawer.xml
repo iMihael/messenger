@@ -15,9 +15,9 @@
             <!--android:icon="@drawable/ic_menu_slideshow"-->
             <!--android:title="Slideshow" />-->
         <item
-            android:id="@+id/pair_device"
+            android:id="@+id/contacts"
             android:icon="@drawable/ic_pair"
-            android:title="Pair Device" />
+            android:title="Contacts" />
         <item
             android:id="@+id/app_settings"
             android:icon="@drawable/ic_menu_manage"

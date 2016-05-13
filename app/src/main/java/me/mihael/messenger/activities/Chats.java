@@ -1,12 +1,7 @@
-package me.mihael.messenger;
+package me.mihael.messenger.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
-import android.text.InputType;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -15,13 +10,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.EditText;
+
+import me.mihael.messenger.R;
+
 
 public class Chats extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chats);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -53,6 +51,20 @@ public class Chats extends AppCompatActivity
 //        builder.setView(input);
 //
 //        builder.show();
+
+//        Tcp.getInstance().startServer();
+        /*Realm r = RDB.getInstance().getRealm();
+        if(r != null) {
+            RDB.getInstance().getRealm().beginTransaction();
+            Contact c = RDB.getInstance().getRealm().createObject(Contact.class);
+            c.setNickname("John222");
+            c.setContactPublicKey(Crypto.getInstance().getMasterPassword());
+            c.setMyPrivateKey(Crypto.getInstance().getMasterPassword());
+            c.setMyPublicKey(Crypto.getInstance().getMasterPassword());
+            RDB.getInstance().getRealm().copyToRealm(c);
+            RDB.getInstance().getRealm().commitTransaction();
+        }*/
+
     }
 
     @Override
@@ -97,21 +109,10 @@ public class Chats extends AppCompatActivity
         if(id == R.id.app_settings) {
             Intent i = new Intent(this, Settings.class);
             startActivity(i);
+        } else if(id == R.id.contacts) {
+            Intent i = new Intent(this, Contacts.class);
+            startActivity(i);
         }
-
-//        if (id == R.id.nav_camera) {
-//            // Handle the camera action
-//        } else if (id == R.id.nav_gallery) {
-//
-//        } else if (id == R.id.nav_slideshow) {
-//
-//        } else if (id == R.id.nav_manage) {
-//
-//        } else if (id == R.id.nav_share) {
-//
-//        } else if (id == R.id.nav_send) {
-//
-//        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
