@@ -1,6 +1,8 @@
 package me.mihael.messenger.activities;
 
 import android.Manifest;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,11 +12,13 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.google.zxing.BarcodeFormat;
@@ -25,14 +29,18 @@ import com.google.zxing.qrcode.QRCodeWriter;
 
 import java.security.KeyPair;
 import me.mihael.messenger.R;
+import me.mihael.messenger.activities.fragments.ContactFragment;
 import me.mihael.messenger.components.Crypto;
 
 public class AddContact extends AppCompatActivity {
 
+    EditText nickname;
     ImageView barCode;
     Button saveBtn;
     KeyPair myKeyPairForContact;
     ProgressDialog progress;
+
+    private ContactFragment contactFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +49,18 @@ public class AddContact extends AppCompatActivity {
 
         barCode = (ImageView)findViewById(R.id.imageView2);
         saveBtn = (Button)findViewById(R.id.button4);
+        nickname = (EditText)findViewById(R.id.editText4);
 
-        progress = ProgressDialog.show(this, "", "Generating RSA keypair for contact...", true, false);
-        new GenerateKeyTask().execute();
+        FragmentManager fm = getFragmentManager();
+        contactFragment = (ContactFragment)fm.findFragmentByTag("contact");
+
+        if (contactFragment == null) {
+            progress = ProgressDialog.show(this, "", "Generating RSA keypair for contact...", true, false);
+            new GenerateKeyTask().execute();
+        } else {
+            myKeyPairForContact = contactFragment.getPair();
+            barCode.setImageBitmap(contactFragment.getBitmap());
+        }
     }
 
     private class GenerateKeyTask extends AsyncTask<Void, Void, KeyPair> {
@@ -57,7 +74,13 @@ public class AddContact extends AppCompatActivity {
             SharedPreferences settings = getSharedPreferences(getString(R.string.prefs), MODE_PRIVATE);
             String nickname = settings.getString("nickname", "Anon");
             qrStr += nickname;
-            showQrCode(qrStr);
+            Bitmap bm = showQrCode(qrStr);
+
+            contactFragment = new ContactFragment();
+            getFragmentManager().beginTransaction().add(contactFragment, "contact").commit();
+            contactFragment.setPair(kp);
+            contactFragment.setBitmap(bm);
+
             progress.dismiss();
         }
     }
@@ -84,7 +107,7 @@ public class AddContact extends AppCompatActivity {
         integrator.initiateScan();
     }
 
-    private void showQrCode(String str) {
+    private Bitmap showQrCode(String str) {
         QRCodeWriter w = new QRCodeWriter();
         try {
             BitMatrix bm = w.encode(str, BarcodeFormat.QR_CODE, 500, 500);
@@ -96,8 +119,10 @@ public class AddContact extends AppCompatActivity {
             }
 
             barCode.setImageBitmap(bmap);
-
-        } catch(Exception e) {}
+            return bmap;
+        } catch(Exception e) {
+            return null;
+        }
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -106,7 +131,16 @@ public class AddContact extends AppCompatActivity {
             // handle scan result
             String result = scanResult.getContents();
             if(result != null) {
-                Log.i("QR", result);
+                if(result.length() < 398) {
+                    AlertDialog.Builder b = new AlertDialog.Builder(this);
+                    b.setTitle("Failure!");
+                    b.setMessage("Wrong public key.");
+                    b.show();
+                } else {
+                    String key = result.substring(0, 398);
+                    String nick = result.substring(399);
+                    nickname.setText(nick);
+                }
             }
         }
     }
