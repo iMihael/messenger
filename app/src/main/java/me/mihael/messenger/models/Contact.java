@@ -92,6 +92,15 @@ public class Contact extends RealmObject {
         r.commitTransaction();
     }
 
+    public static Contact findById(int id) {
+        Realm r = RDB.getInstance().getRealm();
+        RealmResults<Contact> result = r.where(Contact.class).equalTo("id", id).findAll();
+        if(result.size() > 0) {
+            return result.get(0);
+        }
+        return null;
+    }
+
     public static boolean contactExists(String publicKey) {
         Realm r = RDB.getInstance().getRealm();
         RealmQuery<Contact> query = r.where(Contact.class);

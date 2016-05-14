@@ -3,6 +3,7 @@ package me.mihael.messenger.activities;
 import android.Manifest;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -44,6 +45,9 @@ public class AddContact extends AppCompatActivity {
     private String contactPublicKey;
     private KeyPair myKeyPairForContact;
 
+    private int contactId = -1;
+    private Contact editContact;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,15 +60,26 @@ public class AddContact extends AppCompatActivity {
         FragmentManager fm = getFragmentManager();
         contactFragment = (ContactFragment)fm.findFragmentByTag("contact");
 
-        if (contactFragment == null) {
-            progress = ProgressDialog.show(this, "", "Generating RSA keypair for contact...", true, false);
-            new GenerateKeyTask().execute();
+        Bundle extras = getIntent().getExtras();
+        if(extras != null) {
+            this.contactId = extras.getInt("contactId", -1);
+        }
+
+        if(this.contactId != -1) {
+            this.setTitle("Edit Contact");
+            //TODO: get data from realm
+            editContact = Contact.findById(this.contactId);
         } else {
-            myKeyPairForContact = contactFragment.getPair();
-            barCode.setImageBitmap(contactFragment.getBitmap());
-            if(contactFragment.getContactPublicKey() != null) {
-                contactPublicKey = contactFragment.getContactPublicKey();
-                saveBtn.setEnabled(true);
+            if (contactFragment == null) {
+                progress = ProgressDialog.show(this, "", "Generating RSA keypair for contact...", true, false);
+                new GenerateKeyTask().execute();
+            } else {
+                myKeyPairForContact = contactFragment.getPair();
+                barCode.setImageBitmap(contactFragment.getBitmap());
+                if (contactFragment.getContactPublicKey() != null) {
+                    contactPublicKey = contactFragment.getContactPublicKey();
+                    saveBtn.setEnabled(true);
+                }
             }
         }
     }
@@ -80,7 +95,9 @@ public class AddContact extends AppCompatActivity {
             SharedPreferences settings = getSharedPreferences(getString(R.string.prefs), MODE_PRIVATE);
             String nickname = settings.getString("nickname", "Anon");
             qrStr += nickname;
-            Bitmap bm = showQrCode(qrStr);
+
+            Bitmap bm = genQrCode(qrStr);
+            barCode.setImageBitmap(bm);
 
             contactFragment = new ContactFragment();
             getFragmentManager().beginTransaction().add(contactFragment, "contact").commit();
@@ -113,7 +130,7 @@ public class AddContact extends AppCompatActivity {
         integrator.initiateScan();
     }
 
-    private Bitmap showQrCode(String str) {
+    private Bitmap genQrCode(String str) {
         QRCodeWriter w = new QRCodeWriter();
         try {
             BitMatrix bm = w.encode(str, BarcodeFormat.QR_CODE, 500, 500);
@@ -124,7 +141,7 @@ public class AddContact extends AppCompatActivity {
                 }
             }
 
-            barCode.setImageBitmap(bmap);
+
             return bmap;
         } catch(Exception e) {
             return null;
@@ -132,20 +149,26 @@ public class AddContact extends AppCompatActivity {
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        b.setTitle("Failure!");
+
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
         if (scanResult != null) {
             // handle scan result
             String result = scanResult.getContents();
             if(result != null) {
                 if(result.length() < 398) {
-                    AlertDialog.Builder b = new AlertDialog.Builder(this);
-                    b.setTitle("Failure!");
+
                     b.setMessage("Wrong public key.");
                     b.show();
                 } else {
                     contactPublicKey = result.substring(0, 398);
 
-                    //TODO: check key in database
+                    if(Contact.contactExists(contactPublicKey)) {
+                        b.setMessage("Contact already exists.");
+                        b.show();
+                        return;
+                    }
 
                     String nick = result.substring(398);
                     contactFragment.setContactPublicKey(contactPublicKey);
@@ -165,8 +188,28 @@ public class AddContact extends AppCompatActivity {
             return;
         }
 
-        Contact.addContact(nickname.getText().toString(), contactPublicKey, myKeyPairForContact);
+        if(this.contactId != -1) {
+            //TODO: update contact
+        } else {
+            Contact.addContact(nickname.getText().toString(), contactPublicKey, myKeyPairForContact);
+        }
+
         setResult(0);
         finish();
+    }
+
+    public void doRegenerateKeyPair(View v) {
+        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        b.setTitle("Sure?");
+        b.setMessage("Are you sure you want to regenerate keypair for this contact ?");
+        b.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                progress = ProgressDialog.show(AddContact.this, "", "Generating RSA keypair for contact...", true, false);
+                new GenerateKeyTask().execute();
+            }
+        });
+        b.setNegativeButton("No", null);
+        b.show();
     }
 }

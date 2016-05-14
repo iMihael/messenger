@@ -18,6 +18,8 @@ public class Contacts extends AppCompatActivity {
 
     ListView list;
 
+    private RealmResults<Contact> contacts;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,13 +32,15 @@ public class Contacts extends AppCompatActivity {
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+                Intent i = new Intent(Contacts.this, AddContact.class);
+                i.putExtra("contactId", contacts.get(position).getId());
+                startActivityForResult(i, 0);
             }
         });
     }
 
     private void listContacts() {
-        RealmResults<Contact> contacts = RDB.getInstance().getRealm().where(Contact.class).findAll();
+        contacts = RDB.getInstance().getRealm().where(Contact.class).findAll();
         String [] values = new String[contacts.size()];
         for(int i=0;i<contacts.size();i++) {
             values[i] = contacts.get(i).getNickname();

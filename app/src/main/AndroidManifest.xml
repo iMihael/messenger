@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
+
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
@@ -27,7 +28,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activities.Login"
-            android:label="Login"></activity>
+            android:label="Login" />
         <activity
             android:name=".activities.Register"
             android:label="First Login" />
@@ -43,7 +44,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.AddContact" android:label="Add Contact"></activity>
+        <activity
+            android:name=".activities.AddContact"
+            android:label="Add Contact" />
+        <activity android:name=".activities.EditContact"></activity>
     </application>
 
 </manifest>
