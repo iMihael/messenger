@@ -9,13 +9,13 @@ import java.security.KeyPair;
 public class ContactFragment extends Fragment {
     private KeyPair pair;
     private Bitmap bitmap;
-    private byte [] contactPublicKey;
+    private String contactPublicKey;
 
-    public byte[] getContactPublicKey() {
+    public String getContactPublicKey() {
         return contactPublicKey;
     }
 
-    public void setContactPublicKey(byte[] contactPublicKey) {
+    public void setContactPublicKey(String contactPublicKey) {
         this.contactPublicKey = contactPublicKey;
     }
 

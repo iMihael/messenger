@@ -1,7 +1,6 @@
 package me.mihael.messenger.activities;
 
 import android.Manifest;
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -42,7 +41,7 @@ public class AddContact extends AppCompatActivity {
     ProgressDialog progress;
 
     private ContactFragment contactFragment;
-    private byte [] contactPublicKey;
+    private String contactPublicKey;
     private KeyPair myKeyPairForContact;
 
     @Override
@@ -144,10 +143,11 @@ public class AddContact extends AppCompatActivity {
                     b.setMessage("Wrong public key.");
                     b.show();
                 } else {
-                    String key = result.substring(0, 398);
-                    String nick = result.substring(398);
+                    contactPublicKey = result.substring(0, 398);
 
-                    contactPublicKey = Crypto.getInstance().importPublicKey(key);
+                    //TODO: check key in database
+
+                    String nick = result.substring(398);
                     contactFragment.setContactPublicKey(contactPublicKey);
                     saveBtn.setEnabled(true);
                     nickname.setText(nick);
@@ -166,6 +166,7 @@ public class AddContact extends AppCompatActivity {
         }
 
         Contact.addContact(nickname.getText().toString(), contactPublicKey, myKeyPairForContact);
+        setResult(0);
         finish();
     }
 }

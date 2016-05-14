@@ -4,7 +4,10 @@ import java.security.KeyPair;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
+import io.realm.RealmQuery;
+import io.realm.RealmResults;
 import io.realm.annotations.Required;
+import me.mihael.messenger.components.Crypto;
 import me.mihael.messenger.components.RDB;
 
 public class Contact extends RealmObject {
@@ -12,8 +15,18 @@ public class Contact extends RealmObject {
     @Required
     private String nickname;
     private byte [] contactPublicKey;
+    private String contactPublicKeyStr;
     private byte [] myPublicKey;
     private byte [] myPrivateKey;
+
+    public String getContactPublicKeyStr() {
+        return contactPublicKeyStr;
+    }
+
+    public void setContactPublicKeyStr(String contactPublicKeyStr) {
+        this.contactPublicKeyStr = contactPublicKeyStr;
+    }
+
     private int id;
 
     public String getNickname() {
@@ -56,7 +69,7 @@ public class Contact extends RealmObject {
         this.id = id;
     }
 
-    public static void addContact(String _nickname, byte [] _contactPublicKey, KeyPair myKeyPairForContact) {
+    public static void addContact(String _nickname, String _contactPublicKey, KeyPair myKeyPairForContact) {
         Realm r = RDB.getInstance().getRealm();
 
         int newId = 1;
@@ -71,10 +84,20 @@ public class Contact extends RealmObject {
         newContact.setNickname(_nickname);
         newContact.setMyPrivateKey(myKeyPairForContact.getPrivate().getEncoded());
         newContact.setMyPublicKey(myKeyPairForContact.getPublic().getEncoded());
-        newContact.setContactPublicKey(_contactPublicKey);
+        newContact.setContactPublicKeyStr(_contactPublicKey);
+        newContact.setContactPublicKey(Crypto.getInstance().importPublicKey(_contactPublicKey));
         newContact.setId(newId);
 
         r.copyToRealm(newContact);
         r.commitTransaction();
+    }
+
+    public static boolean contactExists(String publicKey) {
+        Realm r = RDB.getInstance().getRealm();
+        RealmQuery<Contact> query = r.where(Contact.class);
+        query.equalTo("contactPublicKeyStr", publicKey);
+
+        RealmResults<Contact> res = query.findAll();
+        return res.size() > 0;
     }
 }

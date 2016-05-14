@@ -25,14 +25,7 @@ public class Contacts extends AppCompatActivity {
 
         list = (ListView)findViewById(R.id.listView);
 
-        RealmResults<Contact> contacts = RDB.getInstance().getRealm().where(Contact.class).findAll();
-        String [] values = new String[contacts.size()];
-        for(int i=0;i<contacts.size();i++) {
-            values[i] = contacts.get(i).getNickname();
-        }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, values);
-        list.setAdapter(adapter);
+        listContacts();
 
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -42,8 +35,24 @@ public class Contacts extends AppCompatActivity {
         });
     }
 
+    private void listContacts() {
+        RealmResults<Contact> contacts = RDB.getInstance().getRealm().where(Contact.class).findAll();
+        String [] values = new String[contacts.size()];
+        for(int i=0;i<contacts.size();i++) {
+            values[i] = contacts.get(i).getNickname();
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, values);
+        list.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        listContacts();
+    }
+
     public void createContact(View v) {
         Intent i = new Intent(this, AddContact.class);
-        startActivity(i);
+        startActivityForResult(i, 0);
     }
 }
