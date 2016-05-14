@@ -39,7 +39,6 @@ public class Crypto {
     }
 
     public KeyPair generateKeyPair() {
-        //TODO: move to separate thread
         try {
             SecureRandom random = new SecureRandom();
             RSAKeyGenParameterSpec spec = new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4);
@@ -55,5 +54,9 @@ public class Crypto {
     public String exportPublicKey(KeyPair pair) {
         byte [] buf = pair.getPublic().getEncoded();
         return new String(Base64.encode(buf, Base64.DEFAULT));
+    }
+
+    public byte [] importPublicKey(String str) {
+        return Base64.decode(str, Base64.DEFAULT);
     }
 }

@@ -31,16 +31,19 @@ import java.security.KeyPair;
 import me.mihael.messenger.R;
 import me.mihael.messenger.activities.fragments.ContactFragment;
 import me.mihael.messenger.components.Crypto;
+import me.mihael.messenger.models.Contact;
 
 public class AddContact extends AppCompatActivity {
 
     EditText nickname;
     ImageView barCode;
     Button saveBtn;
-    KeyPair myKeyPairForContact;
+
     ProgressDialog progress;
 
     private ContactFragment contactFragment;
+    private byte [] contactPublicKey;
+    private KeyPair myKeyPairForContact;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +63,10 @@ public class AddContact extends AppCompatActivity {
         } else {
             myKeyPairForContact = contactFragment.getPair();
             barCode.setImageBitmap(contactFragment.getBitmap());
+            if(contactFragment.getContactPublicKey() != null) {
+                contactPublicKey = contactFragment.getContactPublicKey();
+                saveBtn.setEnabled(true);
+            }
         }
     }
 
@@ -138,10 +145,27 @@ public class AddContact extends AppCompatActivity {
                     b.show();
                 } else {
                     String key = result.substring(0, 398);
-                    String nick = result.substring(399);
+                    String nick = result.substring(398);
+
+                    contactPublicKey = Crypto.getInstance().importPublicKey(key);
+                    contactFragment.setContactPublicKey(contactPublicKey);
+                    saveBtn.setEnabled(true);
                     nickname.setText(nick);
                 }
             }
         }
+    }
+
+    public void doSaveContact(View v) {
+        if(nickname.getText().toString().isEmpty()) {
+            AlertDialog.Builder b = new AlertDialog.Builder(this);
+            b.setTitle("Failure!");
+            b.setMessage("Nickname can not be empty.");
+            b.show();
+            return;
+        }
+
+        Contact.addContact(nickname.getText().toString(), contactPublicKey, myKeyPairForContact);
+        finish();
     }
 }

@@ -9,6 +9,15 @@ import java.security.KeyPair;
 public class ContactFragment extends Fragment {
     private KeyPair pair;
     private Bitmap bitmap;
+    private byte [] contactPublicKey;
+
+    public byte[] getContactPublicKey() {
+        return contactPublicKey;
+    }
+
+    public void setContactPublicKey(byte[] contactPublicKey) {
+        this.contactPublicKey = contactPublicKey;
+    }
 
     public KeyPair getPair() {
         return pair;
