@@ -16,6 +16,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -63,25 +64,45 @@ public class AddContact extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         if(extras != null) {
             this.contactId = extras.getInt("contactId", -1);
-        }
-
-        if(this.contactId != -1) {
-            this.setTitle("Edit Contact");
-            //TODO: get data from realm
-            editContact = Contact.findById(this.contactId);
-        } else {
-            if (contactFragment == null) {
-                progress = ProgressDialog.show(this, "", "Generating RSA keypair for contact...", true, false);
-                new GenerateKeyTask().execute();
-            } else {
-                myKeyPairForContact = contactFragment.getPair();
-                barCode.setImageBitmap(contactFragment.getBitmap());
-                if (contactFragment.getContactPublicKey() != null) {
-                    contactPublicKey = contactFragment.getContactPublicKey();
-                    saveBtn.setEnabled(true);
-                }
+            if(this.contactId != -1) {
+                editContact = Contact.findById(this.contactId);
+                this.setTitle("Edit Contact");
             }
         }
+
+        if (contactFragment == null && this.contactId == -1) {
+            progress = ProgressDialog.show(this, "", "Generating RSA keypair for contact...", true, false);
+            new GenerateKeyTask().execute();
+        } else if(contactFragment == null && this.contactId != -1) {
+            //TODO: get data from realm
+            //TODO: put it to fragment
+
+            myKeyPairForContact = Crypto.getInstance().getKeyPairFromContact(editContact);
+            Bitmap bm = genQrCode(Crypto.getInstance().exportPublicKey(myKeyPairForContact));
+            barCode.setImageBitmap(bm);
+            contactPublicKey = editContact.getContactPublicKeyStr();
+            nickname.setText(editContact.getNickname());
+            saveBtn.setEnabled(true);
+
+            createFragment(myKeyPairForContact, bm);
+            contactFragment.setContactPublicKey(contactPublicKey);
+
+
+        } else if(contactFragment != null) {
+            myKeyPairForContact = contactFragment.getPair();
+            barCode.setImageBitmap(contactFragment.getBitmap());
+            if (contactFragment.getContactPublicKey() != null) {
+                contactPublicKey = contactFragment.getContactPublicKey();
+                saveBtn.setEnabled(true);
+            }
+        }
+    }
+
+    private void createFragment(KeyPair kp, Bitmap bm) {
+        contactFragment = new ContactFragment();
+        getFragmentManager().beginTransaction().add(contactFragment, "contact").commit();
+        contactFragment.setPair(kp);
+        contactFragment.setBitmap(bm);
     }
 
     private class GenerateKeyTask extends AsyncTask<Void, Void, KeyPair> {
@@ -98,11 +119,7 @@ public class AddContact extends AppCompatActivity {
 
             Bitmap bm = genQrCode(qrStr);
             barCode.setImageBitmap(bm);
-
-            contactFragment = new ContactFragment();
-            getFragmentManager().beginTransaction().add(contactFragment, "contact").commit();
-            contactFragment.setPair(kp);
-            contactFragment.setBitmap(bm);
+            createFragment(kp, bm);
 
             progress.dismiss();
         }
@@ -158,7 +175,6 @@ public class AddContact extends AppCompatActivity {
             String result = scanResult.getContents();
             if(result != null) {
                 if(result.length() < 398) {
-
                     b.setMessage("Wrong public key.");
                     b.show();
                 } else {
@@ -190,6 +206,7 @@ public class AddContact extends AppCompatActivity {
 
         if(this.contactId != -1) {
             //TODO: update contact
+            editContact.updateData(nickname.getText().toString(), contactPublicKey, myKeyPairForContact);
         } else {
             Contact.addContact(nickname.getText().toString(), contactPublicKey, myKeyPairForContact);
         }
@@ -211,5 +228,13 @@ public class AddContact extends AppCompatActivity {
         });
         b.setNegativeButton("No", null);
         b.show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.chats, menu);
+        return true;
+//        return false;
     }
 }

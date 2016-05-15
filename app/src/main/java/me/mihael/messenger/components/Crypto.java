@@ -3,12 +3,20 @@ import android.util.Base64;
 import android.util.Log;
 
 import java.nio.charset.Charset;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAKeyGenParameterSpec;
+import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+
+import me.mihael.messenger.models.Contact;
 
 public class Crypto {
 
@@ -47,6 +55,20 @@ public class Crypto {
             return generator.generateKeyPair();
         } catch (Exception e) {
             Log.d("CRYPTO", e.getMessage());
+            return null;
+        }
+    }
+
+    public KeyPair getKeyPairFromContact(Contact c) {
+        X509EncodedKeySpec x509KeySpecPublic = new X509EncodedKeySpec(c.getMyPublicKey());
+        PKCS8EncodedKeySpec privateSpec = new PKCS8EncodedKeySpec(c.getMyPrivateKey());
+
+        try {
+            KeyFactory fact = KeyFactory.getInstance("RSA");
+            PublicKey publicKey = fact.generatePublic(x509KeySpecPublic);
+            PrivateKey privateKey = fact.generatePrivate(privateSpec);
+            return new KeyPair(publicKey, privateKey);
+        } catch (Exception e) {
             return null;
         }
     }

@@ -109,4 +109,25 @@ public class Contact extends RealmObject {
         RealmResults<Contact> res = query.findAll();
         return res.size() > 0;
     }
+
+    public void updateData(String _nickname, String _contactPublicKey, KeyPair myKeyPairForContact) {
+        Realm r = RDB.getInstance().getRealm();
+        r.beginTransaction();
+
+        this.setNickname(_nickname);
+        this.setMyPrivateKey(myKeyPairForContact.getPrivate().getEncoded());
+        this.setMyPublicKey(myKeyPairForContact.getPublic().getEncoded());
+        this.setContactPublicKeyStr(_contactPublicKey);
+        this.setContactPublicKey(Crypto.getInstance().importPublicKey(_contactPublicKey));
+
+        r.copyToRealm(this);
+        r.commitTransaction();
+    }
+
+    public void update() {
+        Realm r = RDB.getInstance().getRealm();
+        r.beginTransaction();
+        r.copyToRealm(this);
+        r.commitTransaction();
+    }
 }
