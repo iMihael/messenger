@@ -122,6 +122,14 @@ public class Contact extends RealmObject {
 
         r.copyToRealm(this);
         r.commitTransaction();
+
+    }
+
+    public void delete() {
+        Realm r = RDB.getInstance().getRealm();
+        r.beginTransaction();
+        this.deleteFromRealm();
+        r.commitTransaction();
     }
 
     public void update() {

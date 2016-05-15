@@ -15,8 +15,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,7 +27,6 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.google.zxing.qrcode.QRCodeWriter;
-
 import java.security.KeyPair;
 import me.mihael.messenger.R;
 import me.mihael.messenger.activities.fragments.ContactFragment;
@@ -74,19 +73,12 @@ public class AddContact extends AppCompatActivity {
             progress = ProgressDialog.show(this, "", "Generating RSA keypair for contact...", true, false);
             new GenerateKeyTask().execute();
         } else if(contactFragment == null && this.contactId != -1) {
-            //TODO: get data from realm
-            //TODO: put it to fragment
 
             myKeyPairForContact = Crypto.getInstance().getKeyPairFromContact(editContact);
-            Bitmap bm = genQrCode(Crypto.getInstance().exportPublicKey(myKeyPairForContact));
-            barCode.setImageBitmap(bm);
             contactPublicKey = editContact.getContactPublicKeyStr();
-            nickname.setText(editContact.getNickname());
-            saveBtn.setEnabled(true);
 
-            createFragment(myKeyPairForContact, bm);
-            contactFragment.setContactPublicKey(contactPublicKey);
-
+            progress = ProgressDialog.show(this, "", "Loading contact...", true, false);
+            new LoadContactTask().execute();
 
         } else if(contactFragment != null) {
             myKeyPairForContact = contactFragment.getPair();
@@ -105,21 +97,48 @@ public class AddContact extends AppCompatActivity {
         contactFragment.setBitmap(bm);
     }
 
-    private class GenerateKeyTask extends AsyncTask<Void, Void, KeyPair> {
-        protected KeyPair doInBackground(Void... params) {
-            return Crypto.getInstance().generateKeyPair();
+    private class BitmapAndPair {
+        public Bitmap bitmap;
+        public KeyPair pair;
+        public BitmapAndPair(Bitmap bitmap, KeyPair pair) {
+            this.bitmap = bitmap;
+            this.pair = pair;
+        }
+    }
+
+    private class LoadContactTask extends AsyncTask<Void, Void, Bitmap> {
+        protected Bitmap doInBackground(Void... params) {
+            return genQrCode(Crypto.getInstance().exportPublicKey(myKeyPairForContact));
         }
 
-        protected void onPostExecute(KeyPair kp) {
-            myKeyPairForContact = kp;
-            String qrStr = Crypto.getInstance().exportPublicKey(kp);
+        protected void onPostExecute(Bitmap result) {
+            createFragment(myKeyPairForContact, result);
+            contactFragment.setContactPublicKey(contactPublicKey);
+
+            barCode.setImageBitmap(result);
+            nickname.setText(editContact.getNickname());
+            saveBtn.setEnabled(true);
+
+            progress.dismiss();
+        }
+    }
+
+    private class GenerateKeyTask extends AsyncTask<Void, Void, BitmapAndPair> {
+        protected BitmapAndPair doInBackground(Void... params) {
+            KeyPair pair = Crypto.getInstance().generateKeyPair();
+            String qrStr = Crypto.getInstance().exportPublicKey(pair);
             SharedPreferences settings = getSharedPreferences(getString(R.string.prefs), MODE_PRIVATE);
             String nickname = settings.getString("nickname", "Anon");
             qrStr += nickname;
-
             Bitmap bm = genQrCode(qrStr);
-            barCode.setImageBitmap(bm);
-            createFragment(kp, bm);
+            BitmapAndPair bp = new BitmapAndPair(bm, pair);
+            return bp;
+        }
+
+        protected void onPostExecute(BitmapAndPair result) {
+            myKeyPairForContact = result.pair;
+            barCode.setImageBitmap(result.bitmap);
+            createFragment(result.pair, result.bitmap);
 
             progress.dismiss();
         }
@@ -205,13 +224,12 @@ public class AddContact extends AppCompatActivity {
         }
 
         if(this.contactId != -1) {
-            //TODO: update contact
             editContact.updateData(nickname.getText().toString(), contactPublicKey, myKeyPairForContact);
         } else {
             Contact.addContact(nickname.getText().toString(), contactPublicKey, myKeyPairForContact);
         }
 
-        setResult(0);
+        setResult(RESULT_OK);
         finish();
     }
 
@@ -231,10 +249,35 @@ public class AddContact extends AppCompatActivity {
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if(id == R.id.action_trash) {
+            AlertDialog.Builder b = new AlertDialog.Builder(this);
+            b.setTitle("Sure?");
+            b.setMessage("Are you sure you want to delete this contact ?");
+            b.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    editContact.delete();
+                    finish();
+                }
+            });
+            b.setNegativeButton("No", null);
+            b.show();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.chats, menu);
-        return true;
-//        return false;
+        if(this.contactId != -1) {
+            getMenuInflater().inflate(R.menu.edit_contact, menu);
+            return true;
+        } else {
+            return false;
+        }
     }
 }

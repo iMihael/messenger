@@ -1,6 +1,7 @@
 package me.mihael.messenger.activities;
 
 import android.content.Intent;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,8 +18,10 @@ import me.mihael.messenger.models.Contact;
 public class Contacts extends AppCompatActivity {
 
     ListView list;
+    FloatingActionButton fab;
 
     private RealmResults<Contact> contacts;
+    private boolean forMessage = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,17 +29,33 @@ public class Contacts extends AppCompatActivity {
         setContentView(R.layout.activity_contacts);
 
         list = (ListView)findViewById(R.id.listView);
+        fab = (FloatingActionButton)findViewById(R.id.fab);
 
         listContacts();
 
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent i = new Intent(Contacts.this, AddContact.class);
-                i.putExtra("contactId", contacts.get(position).getId());
-                startActivityForResult(i, 0);
+                if(forMessage) {
+                    Intent intent = new Intent();
+                    intent.putExtra("contactId", contacts.get(position).getId());
+                    setResult(RESULT_OK, intent);
+                    finish();
+                } else {
+                    Intent i = new Intent(Contacts.this, AddContact.class);
+                    i.putExtra("contactId", contacts.get(position).getId());
+                    startActivityForResult(i, 0);
+                }
             }
         });
+
+        Bundle extras = getIntent().getExtras();
+        if(extras != null) {
+            forMessage = extras.getBoolean("message", false);
+            if(forMessage) {
+                fab.setVisibility(View.INVISIBLE);
+            }
+        }
     }
 
     private void listContacts() {
