@@ -67,7 +67,7 @@ public class Register extends AppCompatActivity {
         }
 
         SocketIO.getInstance().setUrl(server.getText().toString());
-        SocketIO.getInstance().connect(new SimpleEvent() {
+        SocketIO.getInstance().connectRegister(new SimpleEvent() {
             @Override
             public void call(Object o) {
                 String uniqueId = o.toString();

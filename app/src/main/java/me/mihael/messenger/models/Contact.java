@@ -14,10 +14,12 @@ public class Contact extends RealmObject {
 
     @Required
     private String nickname;
+    private String uniqueId;
     private byte [] contactPublicKey;
     private String contactPublicKeyStr;
     private byte [] myPublicKey;
     private byte [] myPrivateKey;
+    private int id;
 
     public String getContactPublicKeyStr() {
         return contactPublicKeyStr;
@@ -27,7 +29,15 @@ public class Contact extends RealmObject {
         this.contactPublicKeyStr = contactPublicKeyStr;
     }
 
-    private int id;
+
+
+    public String getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
+    }
 
     public String getNickname() {
         return nickname;
@@ -69,7 +79,7 @@ public class Contact extends RealmObject {
         this.id = id;
     }
 
-    public static void addContact(String _nickname, String _contactPublicKey, KeyPair myKeyPairForContact) {
+    public static void addContact(String _nickname, String _contactPublicKey, String _contactUniqueId, KeyPair myKeyPairForContact) {
         Realm r = RDB.getInstance().getRealm();
 
         int newId = 1;
@@ -86,6 +96,7 @@ public class Contact extends RealmObject {
         newContact.setMyPublicKey(myKeyPairForContact.getPublic().getEncoded());
         newContact.setContactPublicKeyStr(_contactPublicKey);
         newContact.setContactPublicKey(Crypto.getInstance().importPublicKey(_contactPublicKey));
+        newContact.setUniqueId(_contactUniqueId);
         newContact.setId(newId);
 
         r.copyToRealm(newContact);
@@ -110,7 +121,7 @@ public class Contact extends RealmObject {
         return res.size() > 0;
     }
 
-    public void updateData(String _nickname, String _contactPublicKey, KeyPair myKeyPairForContact) {
+    public void updateData(String _nickname, String _contactPublicKey, String _contactUniqueId, KeyPair myKeyPairForContact) {
         Realm r = RDB.getInstance().getRealm();
         r.beginTransaction();
 
@@ -119,6 +130,7 @@ public class Contact extends RealmObject {
         this.setMyPublicKey(myKeyPairForContact.getPublic().getEncoded());
         this.setContactPublicKeyStr(_contactPublicKey);
         this.setContactPublicKey(Crypto.getInstance().importPublicKey(_contactPublicKey));
+        this.setUniqueId(_contactUniqueId);
 
         r.copyToRealm(this);
         r.commitTransaction();

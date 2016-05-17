@@ -56,12 +56,46 @@ public class SocketIO {
         return instance;
     }
 
-    public boolean connect(String uniqueId) {
+    public void connectLogin(final SimpleEvent success, final SimpleEvent failure) {
 
-        return false;
+        try {
+            IO.Options opts = new IO.Options();
+            opts.query = "uniqueId=" + this.uniqueId;
+
+            socket = IO.socket(this.url, opts);
+        } catch (URISyntaxException e) {
+            Log.d("s.io", e.getMessage());
+            failure.call(e.getMessage());
+            return;
+        }
+
+        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                if(!SocketIO.this.connected) {
+                    socket.disconnect();
+                    failure.call("Can not connect to server.");
+                }
+            }
+        }).on("login", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                try {
+                    JSONObject obj = (JSONObject) args[0];
+                    if (obj.getString("status").equals("success")) {
+                        success.call(null);
+                    }
+                } catch(JSONException e) {
+                    failure.call(e.getMessage());
+                }
+            }
+        });
+
+        socket.connect();
+
     }
 
-    public void connect(final SimpleEvent success, final SimpleEvent failure) {
+    public void connectRegister(final SimpleEvent success, final SimpleEvent failure) {
         try {
             socket = IO.socket(this.url);
         } catch (URISyntaxException e) {

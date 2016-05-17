@@ -15,6 +15,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,6 +32,7 @@ import java.security.KeyPair;
 import me.mihael.messenger.R;
 import me.mihael.messenger.activities.fragments.ContactFragment;
 import me.mihael.messenger.components.Crypto;
+import me.mihael.messenger.components.SocketIO;
 import me.mihael.messenger.models.Contact;
 
 public class AddContact extends AppCompatActivity {
@@ -43,6 +45,7 @@ public class AddContact extends AppCompatActivity {
 
     private ContactFragment contactFragment;
     private String contactPublicKey;
+    private String contactUniqueId;
     private KeyPair myKeyPairForContact;
 
     private int contactId = -1;
@@ -85,6 +88,7 @@ public class AddContact extends AppCompatActivity {
             barCode.setImageBitmap(contactFragment.getBitmap());
             if (contactFragment.getContactPublicKey() != null) {
                 contactPublicKey = contactFragment.getContactPublicKey();
+                contactUniqueId = contactFragment.getContactUniqueId();
                 saveBtn.setEnabled(true);
             }
         }
@@ -108,7 +112,10 @@ public class AddContact extends AppCompatActivity {
 
     private class LoadContactTask extends AsyncTask<Void, Void, Bitmap> {
         protected Bitmap doInBackground(Void... params) {
-            return genQrCode(Crypto.getInstance().exportPublicKey(myKeyPairForContact));
+            String qrStr = Crypto.getInstance().exportPublicKey(myKeyPairForContact);
+            qrStr += SocketIO.getInstance().getUniqueId();
+            qrStr += SocketIO.getInstance().getNickname();
+            return genQrCode(qrStr);
         }
 
         protected void onPostExecute(Bitmap result) {
@@ -127,9 +134,12 @@ public class AddContact extends AppCompatActivity {
         protected BitmapAndPair doInBackground(Void... params) {
             KeyPair pair = Crypto.getInstance().generateKeyPair();
             String qrStr = Crypto.getInstance().exportPublicKey(pair);
-            SharedPreferences settings = getSharedPreferences(getString(R.string.prefs), MODE_PRIVATE);
-            String nickname = settings.getString("nickname", "Anon");
-            qrStr += nickname;
+            //Log.d("public length", new Integer(Crypto.getInstance().exportPublicKey(pair).length()).toString());
+            //398
+            qrStr += SocketIO.getInstance().getUniqueId();
+            //Log.d("unique length", new Integer(SocketIO.getInstance().getUniqueId().length()).toString());
+            //24
+            qrStr += SocketIO.getInstance().getNickname();
             Bitmap bm = genQrCode(qrStr);
             BitmapAndPair bp = new BitmapAndPair(bm, pair);
             return bp;
@@ -205,10 +215,12 @@ public class AddContact extends AppCompatActivity {
                         return;
                     }
 
-                    String nick = result.substring(398);
+                    contactUniqueId = result.substring(398, 398 + 24);
                     contactFragment.setContactPublicKey(contactPublicKey);
+                    contactFragment.setContactUniqueId(contactUniqueId);
+
                     saveBtn.setEnabled(true);
-                    nickname.setText(nick);
+                    nickname.setText(result.substring(422));
                 }
             }
         }
@@ -224,9 +236,9 @@ public class AddContact extends AppCompatActivity {
         }
 
         if(this.contactId != -1) {
-            editContact.updateData(nickname.getText().toString(), contactPublicKey, myKeyPairForContact);
+            editContact.updateData(nickname.getText().toString(), contactPublicKey, contactUniqueId, myKeyPairForContact);
         } else {
-            Contact.addContact(nickname.getText().toString(), contactPublicKey, myKeyPairForContact);
+            Contact.addContact(nickname.getText().toString(), contactPublicKey, contactUniqueId, myKeyPairForContact);
         }
 
         setResult(RESULT_OK);

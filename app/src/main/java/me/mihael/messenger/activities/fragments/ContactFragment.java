@@ -11,6 +11,16 @@ public class ContactFragment extends Fragment {
     private Bitmap bitmap;
     private String contactPublicKey;
 
+    public String getContactUniqueId() {
+        return contactUniqueId;
+    }
+
+    public void setContactUniqueId(String contactUniqueId) {
+        this.contactUniqueId = contactUniqueId;
+    }
+
+    private String contactUniqueId;
+
     public String getContactPublicKey() {
         return contactPublicKey;
     }

@@ -9,10 +9,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
 import io.realm.Realm;
 import me.mihael.messenger.R;
 import me.mihael.messenger.components.Crypto;
 import me.mihael.messenger.components.RDB;
+import me.mihael.messenger.components.SimpleEvent;
 import me.mihael.messenger.components.SocketIO;
 
 
@@ -40,6 +44,8 @@ public class Login extends AppCompatActivity {
         }
 
         pwd = (EditText)findViewById(R.id.editText);
+
+
     }
 
     @Override
@@ -48,7 +54,7 @@ public class Login extends AppCompatActivity {
     }
 
     public void doLogin(View v) {
-        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        final AlertDialog.Builder b = new AlertDialog.Builder(this);
         b.setTitle("Failure!");
 
         if(pwd.getText().toString().isEmpty()) {
@@ -65,6 +71,7 @@ public class Login extends AppCompatActivity {
             return;
         }
 
+
         SocketIO sock = SocketIO.getInstance();
         Crypto crypt = Crypto.getInstance();
 
@@ -72,8 +79,29 @@ public class Login extends AppCompatActivity {
         sock.setUrl(crypt.aesDecrypt(settings.getString("url", "")).trim());
         sock.setUniqueId(crypt.aesDecrypt(settings.getString("uniqueId", "")).trim());
 
-        Intent chatsInt = new Intent(this, Chats.class);
-        startActivity(chatsInt);
-        finish();
+        sock.connectLogin(new SimpleEvent() {
+            @Override
+            public void call(Object o) {
+                Login.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent chatsInt = new Intent(Login.this, Chats.class);
+                        startActivity(chatsInt);
+                        finish();
+                    }
+                });
+            }
+        }, new SimpleEvent() {
+            @Override
+            public void call(Object o) {
+                Login.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        b.setMessage("Connection error.");
+                        b.show();
+                    }
+                });
+            }
+        });
     }
 }

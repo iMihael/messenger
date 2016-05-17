@@ -84,7 +84,7 @@ public class Crypto {
             c.init(Cipher.ENCRYPT_MODE, keySpec);
             return this.bytesToString(
                     c.doFinal(
-                            this.stringToBytes(s)
+                        s.getBytes()
                     )
             );
         } catch (Exception e) {
@@ -98,10 +98,8 @@ public class Crypto {
             Cipher c = Cipher.getInstance("AES");
             SecretKeySpec keySpec = new SecretKeySpec(this.masterPassword, 0, 32, "AES");
             c.init(Cipher.DECRYPT_MODE, keySpec);
-            return this.bytesToString(
-                    c.doFinal(
-                            this.stringToBytes(s)
-                    )
+            return new String(
+                    c.doFinal(this.stringToBytes(s))
             );
         } catch (Exception e) {
             return null;
@@ -117,11 +115,11 @@ public class Crypto {
         return Base64.decode(str, Base64.DEFAULT);
     }
 
-    private String bytesToString(byte [] buf) {
+    public String bytesToString(byte [] buf) {
         return new String(Base64.encode(buf, Base64.DEFAULT));
     }
 
-    private byte [] stringToBytes(String str) {
+    public byte [] stringToBytes(String str) {
         return Base64.decode(str, Base64.DEFAULT);
     }
 }
