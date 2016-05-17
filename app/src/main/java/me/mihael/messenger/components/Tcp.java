@@ -12,16 +12,10 @@ public class Tcp {
     private boolean serverStarted = false;
 
     public static Tcp getInstance() {
-        Tcp localInstance = instance;
-        if (localInstance == null) {
-            synchronized (Tcp.class) {
-                localInstance = instance;
-                if (localInstance == null) {
-                    instance = localInstance = new Tcp();
-                }
-            }
+        if (instance == null) {
+            instance = new Tcp();
         }
-        return localInstance;
+        return instance;
     }
 
     private Thread serverThread;

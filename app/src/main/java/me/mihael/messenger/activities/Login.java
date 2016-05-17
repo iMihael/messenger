@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
@@ -12,26 +13,29 @@ import io.realm.Realm;
 import me.mihael.messenger.R;
 import me.mihael.messenger.components.Crypto;
 import me.mihael.messenger.components.RDB;
+import me.mihael.messenger.components.SocketIO;
 
 
 public class Login extends AppCompatActivity {
 
     EditText pwd;
 
+    private SharedPreferences settings;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        //RDB.getInstance().setContext(getApplicationContext());
         RDB.getInstance().setContext(this);
 
-        SharedPreferences settings = getSharedPreferences(getString(R.string.prefs), MODE_PRIVATE);
+        settings = getSharedPreferences(getString(R.string.prefs), MODE_PRIVATE);
         boolean registered = settings.getBoolean("registered", false);
 
         if(!registered) {
             Intent registerIntent = new Intent(this, Register.class);
             startActivity(registerIntent);
+            finish();
             return;
         }
 
@@ -60,6 +64,13 @@ public class Login extends AppCompatActivity {
             b.show();
             return;
         }
+
+        SocketIO sock = SocketIO.getInstance();
+        Crypto crypt = Crypto.getInstance();
+
+        sock.setNickname(crypt.aesDecrypt(settings.getString("nickname", "")).trim());
+        sock.setUrl(crypt.aesDecrypt(settings.getString("url", "")).trim());
+        sock.setUniqueId(crypt.aesDecrypt(settings.getString("uniqueId", "")).trim());
 
         Intent chatsInt = new Intent(this, Chats.class);
         startActivity(chatsInt);

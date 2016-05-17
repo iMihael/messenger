@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,6 +9,9 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".activities.Register">
 
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
 
     <TextView
         android:layout_width="wrap_content"
@@ -17,7 +20,9 @@
         android:text="This is your first login to app, you must create master password and nickname to use it."
         android:id="@+id/textView3"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -55,12 +60,23 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="App doesn&apos;t keep your password and doesn&apos;t send it to any server, that&apos;s why you must remember it. You can not restore password if you forget it. All data will be encrypted with this password."
+        android:id="@+id/textView4"
+        android:layout_below="@+id/editText3"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Login"
         android:id="@+id/button2"
-        android:layout_below="@+id/editText3"
+        android:layout_below="@+id/textView4"
         android:layout_centerHorizontal="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
@@ -71,10 +87,24 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="App doesn&apos;t keep your password and doesn&apos;t send it to any server, that&apos;s why you must remember it. You can not restore password if you forget it. All data will be encrypted with this password."
-        android:id="@+id/textView4"
+        android:text="Communication server"
+        android:id="@+id/textView7"
         android:layout_below="@+id/button2"
+        android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true" />
-</RelativeLayout>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText5"
+        android:layout_below="@+id/textView7"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="http://192.168.1.5:7979" />
+
+    </RelativeLayout>
+
+</ScrollView>

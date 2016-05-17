@@ -7,27 +7,22 @@ import android.content.Context;
 import android.util.Log;
 
 public class RDB {
+
     private static volatile RDB instance;
+    private Context context;
+    private Realm realm;
 
     public static RDB getInstance() {
-        RDB localInstance = instance;
-        if (localInstance == null) {
-            synchronized (RDB.class) {
-                localInstance = instance;
-                if (localInstance == null) {
-                    instance = localInstance = new RDB();
-                }
-            }
+        if (instance == null) {
+            instance = new RDB();
         }
-        return localInstance;
+        return instance;
     }
 
-    private Context context;
     public void setContext(Context c) {
         this.context = c;
     }
 
-    private Realm realm;
     public Realm getRealm() {
         if(this.realm == null) {
             byte [] pwd = Crypto.getInstance().getMasterPassword();

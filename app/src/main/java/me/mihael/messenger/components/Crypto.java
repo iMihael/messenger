@@ -15,6 +15,10 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAKeyGenParameterSpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 import me.mihael.messenger.models.Contact;
 
@@ -73,12 +77,51 @@ public class Crypto {
         }
     }
 
+    public String aesEncrypt(String s) {
+        try {
+            Cipher c = Cipher.getInstance("AES");
+            SecretKeySpec keySpec = new SecretKeySpec(this.masterPassword, 0, 32, "AES");
+            c.init(Cipher.ENCRYPT_MODE, keySpec);
+            return this.bytesToString(
+                    c.doFinal(
+                            this.stringToBytes(s)
+                    )
+            );
+        } catch (Exception e) {
+            Log.d("CRYPTO", e.getMessage());
+            return null;
+        }
+    }
+
+    public String aesDecrypt(String s) {
+        try {
+            Cipher c = Cipher.getInstance("AES");
+            SecretKeySpec keySpec = new SecretKeySpec(this.masterPassword, 0, 32, "AES");
+            c.init(Cipher.DECRYPT_MODE, keySpec);
+            return this.bytesToString(
+                    c.doFinal(
+                            this.stringToBytes(s)
+                    )
+            );
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public String exportPublicKey(KeyPair pair) {
         byte [] buf = pair.getPublic().getEncoded();
         return new String(Base64.encode(buf, Base64.DEFAULT));
     }
 
     public byte [] importPublicKey(String str) {
+        return Base64.decode(str, Base64.DEFAULT);
+    }
+
+    private String bytesToString(byte [] buf) {
+        return new String(Base64.encode(buf, Base64.DEFAULT));
+    }
+
+    private byte [] stringToBytes(String str) {
         return Base64.decode(str, Base64.DEFAULT);
     }
 }
