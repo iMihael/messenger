@@ -3,11 +3,13 @@ package me.mihael.messenger.components;
 
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URISyntaxException;
-
+import java.util.HashMap;
+import java.util.Map;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -20,6 +22,16 @@ public class SocketIO {
     private boolean connected = false;
     private String uniqueId;
     private String nickname;
+
+    private SimpleEvent contactUpdateEvent;
+
+    public void setContactUpdateEvent(SimpleEvent contactUpdateEvent) {
+        this.contactUpdateEvent = contactUpdateEvent;
+    }
+
+    public void deleteContactUpdateEvent() {
+        this.contactUpdateEvent = null;
+    }
 
     public String getNickname() {
         return nickname;
@@ -56,8 +68,39 @@ public class SocketIO {
         return instance;
     }
 
-    public void connectLogin(final SimpleEvent success, final SimpleEvent failure) {
+    private Map<String, Boolean> convertStatuses(Object... args) {
+        try {
+            JSONArray contacts = (JSONArray) args[0];
+            Map<String, Boolean> contactStatuses = new HashMap<>();
+            for (int i = 0; i < contacts.length(); i++) {
+                JSONObject cont = contacts.getJSONObject(i);
+                contactStatuses.put(cont.getString("id"), cont.getString("status").equals("online"));
+            }
 
+            return contactStatuses;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public void getStatuses(String [] ids, final SimpleEvent success) {
+        final JSONArray jarray = new JSONArray();
+        for(int i=0;i<ids.length;i++) {
+            jarray.put(ids[i]);
+        }
+
+        socket.once("statuses", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.emit("subscribeToContacts", jarray);
+                success.call(convertStatuses(args));
+            }
+        });
+
+        socket.emit("getStatuses", jarray);
+    }
+
+    public void connectLogin(final SimpleEvent success, final SimpleEvent failure) {
         try {
             IO.Options opts = new IO.Options();
             opts.query = "uniqueId=" + this.uniqueId;
@@ -69,18 +112,18 @@ public class SocketIO {
             return;
         }
 
-        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+        socket.once(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                if(!SocketIO.this.connected) {
-                    socket.disconnect();
-                    failure.call("Can not connect to server.");
-                }
+                socket.disconnect();
+                failure.call("Can not connect to server.");
             }
-        }).on("login", new Emitter.Listener() {
+        }).once("login", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 try {
+                    SocketIO.this.subscribeSocket();
+                    socket.off(Socket.EVENT_CONNECT_ERROR);
                     JSONObject obj = (JSONObject) args[0];
                     if (obj.getString("status").equals("success")) {
                         success.call(null);
@@ -92,7 +135,27 @@ public class SocketIO {
         });
 
         socket.connect();
+    }
 
+    private void subscribeSocket() {
+        socket.on("contactUpdate", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                if(SocketIO.this.contactUpdateEvent != null) {
+                    try {
+                        JSONObject contact = (JSONObject) args[0];
+                        SocketIO.this.contactUpdateEvent.call(contact);
+                    } catch (Exception e) {
+                        Log.d("contactUpdate", e.getMessage());
+                    }
+                }
+            }
+        }).on(Socket.EVENT_ERROR, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Log.d("s.io", "error event :(");
+            }
+        });
     }
 
     public void connectRegister(final SimpleEvent success, final SimpleEvent failure) {
@@ -104,27 +167,18 @@ public class SocketIO {
             return;
         }
 
-        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+        socket.once(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
+                socket.disconnect();
+                failure.call("Can not connect to server.");
             }
-        }).on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                if(!SocketIO.this.connected) {
-                    socket.disconnect();
-                    failure.call("Can not connect to server.");
-                }
-            }
-        }).on(Socket.EVENT_ERROR, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Log.d("s.io", "error event :(");
-            }
-        }).on("login", new Emitter.Listener() {
+        }).once("login", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 try {
+                    socket.off(Socket.EVENT_CONNECT_ERROR);
+                    SocketIO.this.subscribeSocket();
                     JSONObject obj = (JSONObject) args[0];
                     if (obj.getString("status").equals("success")) {
                         SocketIO.this.uniqueId = obj.getString("uniqueId");

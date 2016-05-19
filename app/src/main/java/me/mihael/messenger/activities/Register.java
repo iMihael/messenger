@@ -71,7 +71,9 @@ public class Register extends AppCompatActivity {
             @Override
             public void call(Object o) {
                 String uniqueId = o.toString();
-                SocketIO.getInstance().setConnected(true);
+                SocketIO sock = SocketIO.getInstance();
+                sock.setConnected(true);
+
                 Crypto.getInstance().setMasterPassword(pwd.getText().toString());
 
                 SharedPreferences settings = Register.this.getSharedPreferences(getString(R.string.prefs), MODE_PRIVATE);
@@ -81,6 +83,9 @@ public class Register extends AppCompatActivity {
                 editor.putString("uniqueId", Crypto.getInstance().aesEncrypt( uniqueId ));
                 editor.putString("url", Crypto.getInstance().aesEncrypt( SocketIO.getInstance().getUrl() ));
                 editor.apply();
+
+                sock.setNickname(nickname.getText().toString());
+                sock.setUniqueId(uniqueId);
 
                 Register.this.runOnUiThread(new Runnable() {
                     @Override
