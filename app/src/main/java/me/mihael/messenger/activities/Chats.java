@@ -120,6 +120,16 @@ public class Chats extends AppCompatActivity
         return true;
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        int contactId = data.getExtras().getInt("contactId", -1);
+        if(contactId != -1) {
+            Intent i = new Intent(this, Chat.class);
+            i.putExtra("contactId", contactId);
+            startActivity(i);
+        }
+    }
+
     public void selectContactForMessage(View v) {
         Intent i = new Intent(this, Contacts.class);
         i.putExtra("message", true);
