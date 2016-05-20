@@ -122,12 +122,14 @@ public class Chats extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        int contactId = data.getExtras().getInt("contactId", -1);
-        if(contactId != -1) {
-            Intent i = new Intent(this, Chat.class);
-            i.putExtra("contactId", contactId);
-            startActivity(i);
-        }
+        try {
+            int contactId = data.getExtras().getInt("contactId", -1);
+            if (contactId != -1) {
+                Intent i = new Intent(this, Chat.class);
+                i.putExtra("contactId", contactId);
+                startActivity(i);
+            }
+        } catch (Exception e) {}
     }
 
     public void selectContactForMessage(View v) {

@@ -93,7 +93,9 @@ public class Contacts extends AppCompatActivity {
         for(int i=0;i<contacts.size();i++) {
             values[i] = contacts.get(i).getNickname();
             if(receiveStatuses) {
-                values[i] += contactStatuses.get(contacts.get(i).getUniqueId()) ? " (online)" : " (offline)";
+                if(contactStatuses.get(contacts.get(i).getUniqueId()) != null) {
+                    values[i] += contactStatuses.get(contacts.get(i).getUniqueId()) ? " (online)" : " (offline)";
+                }
             }
             uniqueIds[i] = contacts.get(i).getUniqueId();
         }
