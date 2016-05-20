@@ -77,6 +77,37 @@ public class Crypto {
         }
     }
 
+    public String decryptOnContactMyPrivate(Contact c, String str) {
+        KeyPair kp = this.getKeyPairFromContact(c);
+        try {
+            if (kp != null) {
+                Cipher cipher = Cipher.getInstance("RSA");
+                cipher.init(Cipher.ENCRYPT_MODE, kp.getPublic());
+                byte [] buf = cipher.doFinal(this.stringToBytes(str));
+                return new String(buf);
+            }
+        } catch (Exception e) {}
+
+        return null;
+    }
+
+    public String encryptOnContactPublic(Contact c, String str) {
+        try {
+            byte [] key = c.getContactPublicKey();
+            X509EncodedKeySpec x509KeySpecPublic = new X509EncodedKeySpec(key);
+            KeyFactory fact = KeyFactory.getInstance("RSA");
+            PublicKey publicKey = fact.generatePublic(x509KeySpecPublic);
+            if (publicKey != null) {
+                Cipher cipher = Cipher.getInstance("RSA");
+                cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+                byte [] buf = cipher.doFinal(str.getBytes());
+                return this.bytesToString(buf);
+            }
+        } catch (Exception e) {}
+
+        return null;
+    }
+
     public String aesEncrypt(String s) {
         try {
             Cipher c = Cipher.getInstance("AES");

@@ -31,6 +31,7 @@ public class RDB {
                     RealmConfiguration conf = new RealmConfiguration.Builder(this.context)
                             .encryptionKey(pwd)
                             .build();
+                    Realm.setDefaultConfiguration(conf);
                     this.realm = Realm.getInstance(conf);
                 } catch (Exception e) {
                     Log.d("REALM", e.getMessage());

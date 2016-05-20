@@ -7,6 +7,7 @@ import io.realm.RealmObject;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import io.realm.annotations.Required;
+import me.mihael.messenger.activities.Register;
 import me.mihael.messenger.components.Crypto;
 import me.mihael.messenger.components.RDB;
 
@@ -106,6 +107,30 @@ public class Contact extends RealmObject {
     public static Contact findById(int id) {
         Realm r = RDB.getInstance().getRealm();
         RealmResults<Contact> result = r.where(Contact.class).equalTo("id", id).findAll();
+        if(result.size() > 0) {
+            return result.get(0);
+        }
+        return null;
+    }
+
+    public static Contact findByUniqueId(String uniqueId, boolean reuseRealm) {
+        Realm r;
+        if(reuseRealm) {
+            r = Realm.getDefaultInstance();
+        } else {
+            r = RDB.getInstance().getRealm();
+        }
+
+        RealmResults<Contact> result = r.where(Contact.class).equalTo("uniqueId", uniqueId).findAll();
+        if(result.size() > 0) {
+            return result.get(0);
+        }
+        return null;
+    }
+
+    public static Contact findByUniqueId(String uniqueId) {
+        Realm r = RDB.getInstance().getRealm();
+        RealmResults<Contact> result = r.where(Contact.class).equalTo("uniqueId", uniqueId).findAll();
         if(result.size() > 0) {
             return result.get(0);
         }

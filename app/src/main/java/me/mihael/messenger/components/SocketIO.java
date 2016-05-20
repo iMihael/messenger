@@ -13,6 +13,7 @@ import java.util.Map;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import me.mihael.messenger.models.Contact;
 
 public class SocketIO {
 
@@ -100,6 +101,18 @@ public class SocketIO {
         socket.emit("getStatuses", jarray);
     }
 
+    public void getContactIP(String uniqueId, SimpleEvent success) {
+        socket.once("sendIPForContact", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject obj = (JSONObject) args[0];
+                Log.d("contactIP", obj.toString());
+            }
+        });
+
+        socket.emit("getContactIP", uniqueId);
+    }
+
     public void connectLogin(final SimpleEvent success, final SimpleEvent failure) {
         try {
             IO.Options opts = new IO.Options();
@@ -150,10 +163,32 @@ public class SocketIO {
                     }
                 }
             }
-        }).on(Socket.EVENT_ERROR, new Emitter.Listener() {
+        })
+        .on(Socket.EVENT_ERROR, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 Log.d("s.io", "error event :(");
+            }
+        })
+        .on("getContactIP", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject obj = (JSONObject) args[0];
+                try {
+                    String uniqueId = obj.getString("forContact");
+                    //TODO: fix thread mistake
+                    Contact contact = Contact.findByUniqueId(uniqueId, true);
+                    if(contact != null) {
+                        String ip = Utils.getIPAddress(true);
+                        ip = Crypto.getInstance().encryptOnContactPublic(contact, ip);
+                        JSONObject jObject = new JSONObject();
+                        jObject.put("forContact", uniqueId);
+                        jObject.put("localIP", ip);
+                        socket.emit("sendIPForContact", jObject);
+                    }
+                } catch (Exception e) {
+                    Log.d("s.io", e.getMessage());
+                }
             }
         });
     }

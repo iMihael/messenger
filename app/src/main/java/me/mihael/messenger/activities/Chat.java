@@ -98,6 +98,13 @@ public class Chat extends AppCompatActivity {
                 }
             }
         });
+
+        SocketIO.getInstance().getContactIP(contactUnique, new SimpleEvent() {
+            @Override
+            public void call(Object o) {
+
+            }
+        });
     }
 
     public void sendMessage(View v) {
