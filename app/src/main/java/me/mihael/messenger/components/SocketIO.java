@@ -101,12 +101,21 @@ public class SocketIO {
         socket.emit("getStatuses", jarray);
     }
 
-    public void getContactIP(String uniqueId, SimpleEvent success) {
+    public void getContactIP(final String uniqueId, final SimpleEvent success) {
         socket.once("sendIPForContact", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 JSONObject obj = (JSONObject) args[0];
-                Log.d("contactIP", obj.toString());
+                try {
+                    if (obj.getString("status") != null && obj.getString("status").equals("success")) {
+                        String localIP = obj.getString("localIP");
+                        Contact c = Contact.findByUniqueId(uniqueId, true);
+                        localIP = Crypto.getInstance().decryptOnContactMyPrivate(c, localIP);
+                        success.call(localIP);
+                    }
+                } catch (Exception e) {
+
+                }
             }
         });
 

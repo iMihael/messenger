@@ -82,7 +82,7 @@ public class Crypto {
         try {
             if (kp != null) {
                 Cipher cipher = Cipher.getInstance("RSA");
-                cipher.init(Cipher.ENCRYPT_MODE, kp.getPublic());
+                cipher.init(Cipher.DECRYPT_MODE, kp.getPrivate());
                 byte [] buf = cipher.doFinal(this.stringToBytes(str));
                 return new String(buf);
             }

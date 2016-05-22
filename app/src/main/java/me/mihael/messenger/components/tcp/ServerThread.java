@@ -5,19 +5,28 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import me.mihael.messenger.components.Tcp;
+
 public class ServerThread implements Runnable {
-    private final int port = 6000;
     private ServerSocket serverSocket;
+    private int port;
+
+    public int getPort() {
+        return port;
+    }
 
     public void run() {
         Socket socket;
         try {
-            serverSocket = new ServerSocket(port);
+            serverSocket = new ServerSocket(0);
         } catch (IOException e) {
             Log.d("TCP", e.getMessage());
             Log.d("TPC", e.toString());
             return;
         }
+
+        port = serverSocket.getLocalPort();
+        Tcp.getInstance().setPort(port);
 
         while (!Thread.currentThread().isInterrupted()) {
             try {

@@ -1,6 +1,7 @@
 package me.mihael.messenger.activities;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -8,15 +9,25 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
 import me.mihael.messenger.R;
+import me.mihael.messenger.components.Logger;
+import me.mihael.messenger.components.LoggerFactory;
+import me.mihael.messenger.components.Stun;
+import me.mihael.messenger.components.UDP;
 
 
 public class Chats extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, Logger.Observer {
+
+    @Override
+    public void onLogEntry(String message) {
+        Log.d("stun", message);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +77,25 @@ public class Chats extends AppCompatActivity
             RDB.getInstance().getRealm().commitTransaction();
         }*/
 
+        //Stun.getInstance().doDiscovery();
+        //new StunDiscovery().execute();
+
+        if(!Stun.getInstance().getDiscovered()) {
+            Stun.getInstance().setLocalPort(UDP.getInstance().startServer());
+            new StunDiscovery().execute();
+        }
+
+    }
+
+    private class StunDiscovery extends AsyncTask<Void, Void, Void> {
+        protected Void doInBackground(Void... args) {
+            Stun.getInstance().doDiscovery();
+            return null;
+        }
+
+        protected void onPostExecute(Void feed) {
+
+        }
     }
 
     @Override

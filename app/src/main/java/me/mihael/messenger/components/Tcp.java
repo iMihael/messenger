@@ -10,6 +10,15 @@ public class Tcp {
 
     private static volatile Tcp instance;
     private boolean serverStarted = false;
+    private int port;
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
 
     public static Tcp getInstance() {
         if (instance == null) {
@@ -24,6 +33,8 @@ public class Tcp {
     public Tcp() {
         clients = new ArrayList<>();
     }
+
+
 
     public void addClient(Client c) {
         clients.add(c);
